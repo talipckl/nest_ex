@@ -15,9 +15,13 @@ datasource db {
 
 model User {
   id         Int      @id @default(autoincrement())
-  email      String?
-  created_at DateTime
-  updated_at DateTime
+  email      String?  @unique
+  name       String?  
+  password   String?  
+  created_at DateTime? @default(now())
+  updated_at DateTime? @updatedAt
+  bookmarks  BookMark[]
+  @@map("users")
 }
 
 model BookMark {
@@ -25,4 +29,7 @@ model BookMark {
   title      String?
   created_at DateTime
   updated_at DateTime
+  user_id    Int
+  user       User     @relation(fields: [user_id], references: [id])
+  @@map("bookmarks")
 }
