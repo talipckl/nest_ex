@@ -5,9 +5,14 @@ import * as  argon from 'argon2'
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { JwtService } from '@nestjs/jwt';
 import { env } from 'process';
+import { ConfigService } from '@nestjs/config';
 @Injectable()
 export class AuthService {
-    constructor(private prisma: PrismaService, private jwt: JwtService) { }
+    constructor(
+        private prisma: PrismaService,
+        private jwt: JwtService,
+        private config: ConfigService
+    ) { }
 
     async signup(dto: AuthDto) {
         const password = await argon.hash(dto.password)
@@ -43,12 +48,12 @@ export class AuthService {
         delete user.password;
 
         const tokenData = await this.signToken(user.id, user.email);
-        
+
         return {
-            ...tokenData,         // Token verisi eklenir.
-            user_id: user.id,     // Kullanıcı ID'si eklenir.
-            email: user.email,    // Kullanıcı emaili eklenir.
-            name: user.name       // Kullanıcı adı eklenir.
+            ...tokenData,
+            user_id: user.id,
+            email: user.email,
+            name: user.name
         };
     }
     async signToken(user_id: number, email: string): Promise<{ access_token: string }> {
@@ -60,13 +65,14 @@ export class AuthService {
             payload,
             {
                 expiresIn: '45m',
-                secret: process.env.JWT_SECRET || 'default_secret'
+                //secret: process.env.JWT_SECRET || 'default_secret'
+                secret: this.config.get('JWT_SECRET')
             }
         );
 
         return {
             access_token: token,
-          
         };
     }
+    
 }
